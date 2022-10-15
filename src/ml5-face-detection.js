@@ -17,27 +17,29 @@ export default class MlFaceDetection extends React.Component {
     super(props);
   }
 
+  image;
+
   async componentDidMount() {
     var canvas = document.getElementById("face-canvas");
 
     var context = canvas.getContext("2d");
 
-    const image = new Image(); // Using optional size for image
-    image.src = "./starwars-luke-leia-han.jpg"; // Load an image of intrinsic size in CSS pixels
-    image.onload = () => {
+    this.image = new Image(); // Using optional size for image
+    this.image.src = "./obi-wan-kenobi.jpeg"; // Load an image of intrinsic size in CSS pixels
+    this.image.onload = () => {
       // Draw when image has loaded
       // Use the intrinsic size of image in CSS pixels for the canvas element
-      canvas.width = image.naturalWidth;
-      canvas.height = image.naturalHeight;
+      canvas.width = this.image.naturalWidth;
+      canvas.height = this.image.naturalHeight;
 
       // Will draw the image as 300x227, ignoring the custom size of 60x45
       // given in the constructor
-      context.drawImage(image, 0, 0);
+      // context.drawImage(image, 0, 0);
 
       // To use the custom size we'll have to specify the scale parameters
       // using the element's width and height properties - lets draw one
       // on top in the corner:
-      context.drawImage(image, 0, 0, image.width, image.height);
+      context.drawImage(this.image, 0, 0, this.image.width, this.image.height);
     };
   }
 
@@ -97,30 +99,43 @@ export default class MlFaceDetection extends React.Component {
       context.strokeStyle = "blue";
       context.stroke();
     });
-    // const img = face;
-    // const size = this.getSize(img);
 
-    // context.drawImage(
-    //   img,
-    //   0,
-    //   0,
-    //   size.width,
-    //   size.height // source rectangle
-    //   // 0,
-    //   // 0,
-    //   // canvas.width,
-    //   // canvas.height
-    // ); // destination rectangle
+    return results;
+  }
 
-    //context.drawImage(face, 0, 0, 300, 300);
+  /** This method to determine the best area to focus on in an image */
+  async findGravity() {}
 
-    // context.beginPath();
-    // context.rect(188, 50, 200, 100);
-    // //context.fillStyle = "yellow";
-    // //context.fill();
-    // context.lineWidth = 2;
-    // context.strokeStyle = "blue";
-    // context.stroke();
+  /** This method to do the cropping of an image based on gravity */
+  // TODO - Add padding around the face detection as a % of the size of the image
+  async crop() {
+    const detection = await this.detect();
+
+    // Is it one face?
+    if (detection.length === 1) {
+      const face = detection[0].alignedRect.box;
+
+      // To crop the image we use the drawImage again
+      // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+      // The (s) parameters being the source size to place in the (d) destination area
+      var canvas = document.getElementById("face-canvas");
+
+      var context = canvas.getContext("2d");
+      context.drawImage(
+        this.image,
+        face.x,
+        face.y,
+        face.width,
+        face.height,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+    }
+
+    // Is it multiple faces?
+    // How to handle this?
   }
 
   render() {
@@ -129,6 +144,7 @@ export default class MlFaceDetection extends React.Component {
     return (
       <div style={{ display: "flex", "flex-direction": "column" }}>
         <button onClick={() => this.detect()}>DETECT</button>
+        <button onClick={() => this.crop()}>CROP</button>
         {/* <img
           crossOrigin="Anonymous"
           id="face"
