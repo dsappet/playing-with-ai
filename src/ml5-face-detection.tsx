@@ -1,4 +1,5 @@
 import React from "react";
+import { findGravity } from "./helpers/gravity";
 
 declare var ml5: any;
 
@@ -106,9 +107,6 @@ export default class MlFaceDetection extends React.Component {
     return results;
   }
 
-  /** This method to determine the best area to focus on in an image */
-  async findGravity() {}
-
   /** This method to do the cropping of an image based on gravity */
   // TODO - Add padding around the face detection as a % of the size of the image
   async crop() {
@@ -123,13 +121,36 @@ export default class MlFaceDetection extends React.Component {
       // The (s) parameters being the source size to place in the (d) destination area
       var canvas: any = document.getElementById("face-canvas");
 
+      const gravity = findGravity({
+        planets: [face],
+        galaxySize: { width: canvas.width, height: canvas.height },
+      });
+
+      var newWidth = face.width + canvas.width * gravity.pull;
+      var newHeight = face.height + canvas.height * gravity.pull;
+
+      /** The new starting x and y  */
+      var nudgeX = face.x - (newWidth - face.width) / 2;
+      var nudgeY = face.y - (newHeight - face.height) / 2;
+
+      /** If we are trying to start farther than the origin of the image, nudge the other direction and don't try to start farther than 0,0 */
+      if (nudgeX < 0) {
+        newWidth += Math.abs(nudgeX);
+        nudgeX = 0;
+      }
+
+      if (nudgeY < 0) {
+        newHeight += Math.abs(nudgeY);
+        nudgeY = 0;
+      }
+
       var context = canvas.getContext("2d");
       context.drawImage(
         this.image,
-        face.x,
-        face.y,
-        face.width,
-        face.height,
+        nudgeX,
+        nudgeY,
+        newWidth,
+        newHeight,
         0,
         0,
         canvas.width,
