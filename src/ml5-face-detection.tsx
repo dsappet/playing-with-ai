@@ -1,5 +1,7 @@
 import React from "react";
 
+declare var ml5: any;
+
 const detectionOptions = {
   withLandmarks: true,
   withDescriptors: false,
@@ -20,7 +22,8 @@ export default class MlFaceDetection extends React.Component {
   image;
 
   async componentDidMount() {
-    var canvas = document.getElementById("face-canvas");
+    var canvas: any =
+      document.getElementById("face-canvas") || new HTMLElement();
 
     var context = canvas.getContext("2d");
 
@@ -75,7 +78,7 @@ export default class MlFaceDetection extends React.Component {
     console.log("run it");
 
     // Make some sparkles
-    const canvas = document.getElementById("face-canvas");
+    const canvas: any = document.getElementById("face-canvas");
     const context = canvas.getContext("2d");
     const results = await faceapi.detect(canvas); //, (err, results) => {
     // if (err) {
@@ -118,7 +121,7 @@ export default class MlFaceDetection extends React.Component {
       // To crop the image we use the drawImage again
       // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
       // The (s) parameters being the source size to place in the (d) destination area
-      var canvas = document.getElementById("face-canvas");
+      var canvas: any = document.getElementById("face-canvas");
 
       var context = canvas.getContext("2d");
       context.drawImage(
@@ -139,10 +142,8 @@ export default class MlFaceDetection extends React.Component {
   }
 
   render() {
-    const imageUrl =
-      "https://media.wired.com/photos/62ce0a69540a1fd5ca4bd82a/master/pass/Star-Wars-Ranking-Culture-607402182.jpg";
     return (
-      <div style={{ display: "flex", "flex-direction": "column" }}>
+      <div style={{ display: "flex", flexDirection: "column" }}>
         <button onClick={() => this.detect()}>DETECT</button>
         <button onClick={() => this.crop()}>CROP</button>
         {/* <img
