@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { findGravity } from "./helpers/gravity";
 
 declare var ml5: any;
@@ -15,26 +15,24 @@ function modelLoaded() {
   console.log("Model Loaded!");
 }
 
-export default class MlFaceDetection extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+export default function MlFaceDetection(props): JSX.Element {
+  const { imgSrc } = props;
+  const ogCanvasRef = useRef<HTMLCanvasElement>(null);
+  var image;
 
-  image;
-
-  async componentDidMount() {
+  useEffect(() => {
     var canvas: any =
       document.getElementById("face-canvas") || new HTMLElement();
 
     var context = canvas.getContext("2d");
 
-    this.image = new Image(); // Using optional size for image
-    this.image.src = "./obi-wan-kenobi.jpeg"; // Load an image of intrinsic size in CSS pixels
-    this.image.onload = () => {
+    image = new Image(); // Using optional size for image
+    image.src = "./obi-wan-kenobi.jpeg"; // Load an image of intrinsic size in CSS pixels
+    image.onload = () => {
       // Draw when image has loaded
       // Use the intrinsic size of image in CSS pixels for the canvas element
-      canvas.width = this.image.naturalWidth;
-      canvas.height = this.image.naturalHeight;
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
 
       // Will draw the image as 300x227, ignoring the custom size of 60x45
       // given in the constructor
@@ -43,11 +41,16 @@ export default class MlFaceDetection extends React.Component {
       // To use the custom size we'll have to specify the scale parameters
       // using the element's width and height properties - lets draw one
       // on top in the corner:
-      context.drawImage(this.image, 0, 0, this.image.width, this.image.height);
-    };
-  }
+      context.drawImage(image, 0, 0, image.width, image.height);
 
-  getSize(img) {
+      // Also draw the "OG" image
+      ogCanvasRef.current
+        ?.getContext("2d")
+        ?.drawImage(image, 0, 0, image.width, image.height);
+    };
+  }, [imgSrc]);
+
+  function getSize(img) {
     var MAX_WIDTH = 300;
     var MAX_HEIGHT = 300;
 
@@ -75,7 +78,7 @@ export default class MlFaceDetection extends React.Component {
     };
   }
 
-  async detect() {
+  async function detect() {
     console.log("run it");
 
     // Make some sparkles
@@ -109,8 +112,8 @@ export default class MlFaceDetection extends React.Component {
 
   /** This method to do the cropping of an image based on gravity */
   // TODO - Add padding around the face detection as a % of the size of the image
-  async crop() {
-    const detection = await this.detect();
+  async function crop() {
+    const detection = await detect();
 
     // Is it one face?
     if (detection.length === 1) {
@@ -146,7 +149,7 @@ export default class MlFaceDetection extends React.Component {
 
       var context = canvas.getContext("2d");
       context.drawImage(
-        this.image,
+        image,
         nudgeX,
         nudgeY,
         newWidth,
@@ -162,25 +165,25 @@ export default class MlFaceDetection extends React.Component {
     // How to handle this?
   }
 
-  render() {
-    return (
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <button onClick={() => this.detect()}>DETECT</button>
-        <button onClick={() => this.crop()}>CROP</button>
-        {/* <img
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <button onClick={() => detect()}>DETECT</button>
+      <button onClick={() => crop()}>CROP</button>
+      {/* <img
           crossOrigin="Anonymous"
           id="face"
           src={imageUrl}
           style={{ width: "300px" }}
         /> */}
-        {/* <img
+      {/* <img
           id="face"
           src="./starwars-luke-leia-han.jpg"
           style={{ width: "300px" }}
         /> */}
-
+      <div style={{ display: "flex" }}>
+        <canvas ref={ogCanvasRef} id="original" />
         <canvas id="face-canvas" />
       </div>
-    );
-  }
+    </div>
+  );
 }
